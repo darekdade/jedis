@@ -377,6 +377,7 @@ public class BinaryClient extends Connection {
 	sendCommand(ZADD, key, toByteArray(score), member);
     }
 
+    @Deprecated
     public void zaddBinary(final byte[] key, Map<Double, byte[]> scoreMembers) {
 	ArrayList<byte[]> args = new ArrayList<byte[]>(
 		scoreMembers.size() * 2 + 1);
@@ -386,6 +387,24 @@ public class BinaryClient extends Connection {
 	for (Map.Entry<Double, byte[]> entry : scoreMembers.entrySet()) {
 	    args.add(toByteArray(entry.getKey()));
 	    args.add(entry.getValue());
+	}
+
+	byte[][] argsArray = new byte[args.size()][];
+	args.toArray(argsArray);
+
+	sendCommand(ZADD, argsArray);
+    }
+
+    public void zaddBinary(final byte[] key, Tuple... scoreMembers) {
+
+	ArrayList<byte[]> args = new ArrayList<byte[]>(
+		scoreMembers.length * 2 + 1);
+
+	args.add(key);
+
+	for (Tuple t : scoreMembers) {
+	    args.add(toByteArray(t.getScore()));
+	    args.add(t.getBinaryElement());
 	}
 
 	byte[][] argsArray = new byte[args.size()][];
@@ -1099,40 +1118,5 @@ public class BinaryClient extends Connection {
     
     public void hincrByFloat(final byte[] key, final byte[] field, double increment) {
     	sendCommand(HINCRBYFLOAT, key, field, toByteArray(increment));
-    }
-    
-    public void scan(int cursor, final ScanParams params) {
-	final List<byte[]> args = new ArrayList<byte[]>();
-	args.add(toByteArray(cursor));
-	args.addAll(params.getParams());
-	sendCommand(SCAN, args.toArray(new byte[args.size()][]));
-    }
-    
-    public void hscan(final byte[] key, int cursor, final ScanParams params) {
- 	final List<byte[]> args = new ArrayList<byte[]>();
- 	args.add(key);
- 	args.add(toByteArray(cursor));
- 	args.addAll(params.getParams());
- 	sendCommand(HSCAN, args.toArray(new byte[args.size()][]));
-    }
-    
-    public void sscan(final byte[] key, int cursor, final ScanParams params) {
- 	final List<byte[]> args = new ArrayList<byte[]>();
- 	args.add(key);
- 	args.add(toByteArray(cursor));
- 	args.addAll(params.getParams());
- 	sendCommand(SSCAN, args.toArray(new byte[args.size()][]));
-    }
-    
-    public void zscan(final byte[] key, int cursor, final ScanParams params) {
- 	final List<byte[]> args = new ArrayList<byte[]>();
- 	args.add(key);
- 	args.add(toByteArray(cursor));
- 	args.addAll(params.getParams());
- 	sendCommand(ZSCAN, args.toArray(new byte[args.size()][]));
-    }
-    
-    public void waitReplicas(int replicas, long timeout) {
-	sendCommand(WAIT, toByteArray(replicas), toByteArray(timeout));
     }
 }
